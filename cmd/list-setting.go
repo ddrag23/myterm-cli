@@ -45,7 +45,7 @@ func ListSetting() *cobra.Command {
 				listFiles = append(listFiles, cred.Label)
 			}
 			answer := checkboxes("Pilih salah satu credential", listFiles)
-			RunAndConnectSsh("./credentials/" + answer + ".json")
+			runAndConnectSsh("./credentials/" + answer + ".json")
 		},
 	}
 }
