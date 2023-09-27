@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 	"termius-cli/entity"
 	"termius-cli/utils"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -18,25 +18,40 @@ func AddSetting() *cobra.Command {
 		Use:   "add-setting",
 		Short: "setting your credentials ssh",
 		Run: func(c *cobra.Command, args []string) {
-			label := utils.StringPrompt("Input label ssh ")
-			address := utils.StringPrompt("Input address ssh ")
-			port := utils.StringPrompt("Input port ssh, default using port 22")
-			username := utils.StringPrompt("Input username ssh")
-			password := utils.StringPrompt("Input password ssh")
-			var convertPort int
-			if port == "" {
-				convertPort = 22
-			} else {
-				convertPort, _ = strconv.Atoi(port)
+			var qs = []*survey.Question{
+				{
+					Name:     "label",
+					Prompt:   &survey.Input{Message: "Input label ssh?"},
+					Validate: survey.Required,
+				},
+				{
+					Name:     "address",
+					Prompt:   &survey.Input{Message: "Input address ssh?"},
+					Validate: survey.Required,
+				},
+				{
+					Name:     "port",
+					Prompt:   &survey.Input{Message: "Input port ssh?", Default: "22"},
+					Validate: survey.Required,
+				},
+				{
+					Name:     "username",
+					Prompt:   &survey.Input{Message: "Input username ssh?"},
+					Validate: survey.Required,
+				},
+				{
+					Name:     "password",
+					Prompt:   &survey.Input{Message: "Input password ssh?"},
+					Validate: survey.Required,
+				},
 			}
-			input := entity.SSHCredentials{
-				Label:    label,
-				Address:  address,
-				Port:     convertPort,
-				Username: username,
-				Password: password,
+			var answers entity.SSHCredentials
+			err := survey.Ask(qs, &answers)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
 			}
-			file, _ := json.MarshalIndent(input, "", " ")
+			file, _ := json.MarshalIndent(answers, "", " ")
 			checkDir, err := utils.Exists("./credentials")
 			if err != nil {
 				log.Fatal(err.Error())
@@ -44,7 +59,14 @@ func AddSetting() *cobra.Command {
 			if !checkDir {
 				os.MkdirAll("credentials", 0777)
 			}
-			err = ioutil.WriteFile("./credentials/"+label+".json", file, 0777)
+			existFile, err := utils.Exists(fmt.Sprintf("./credentials/%s.json", answers.Label))
+			if err != nil {
+				log.Fatal(err)
+			}
+			if existFile {
+				log.Fatalln("your label input is exist")
+			}
+			err = ioutil.WriteFile("./credentials/"+answers.Label+".json", file, 0777)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
