@@ -15,7 +15,7 @@ import (
 
 func AddSetting() *cobra.Command {
 	return &cobra.Command{
-		Use:   "add-setting",
+		Use:   "add",
 		Short: "setting your credentials ssh",
 		Run: func(c *cobra.Command, args []string) {
 			var qs = []*survey.Question{
