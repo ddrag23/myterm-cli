@@ -1,5 +1,5 @@
 ## MyTermCLI
-#### this app for save, list and running your vps server without inputting credential from scratch
+This app for save, list and running your vps server without inputting credential from scratch
 
 ### How To Install
 - Clone repo mytermcli
