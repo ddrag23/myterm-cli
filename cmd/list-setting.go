@@ -3,7 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"termius-cli/entity"
@@ -28,7 +28,7 @@ func ListSetting() *cobra.Command {
 		Use:   "list",
 		Short: "List all your credential ssh",
 		Run: func(cmd *cobra.Command, args []string) {
-			files, err := ioutil.ReadDir("./credentials")
+			files, err := os.ReadDir("./credentials")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -40,7 +40,7 @@ func ListSetting() *cobra.Command {
 				}
 				defer jsonFile.Close()
 				var cred entity.SSHCredentials
-				byteValue, _ := ioutil.ReadAll(jsonFile)
+				byteValue, _ := io.ReadAll(jsonFile)
 				json.Unmarshal(byteValue, &cred)
 				listFiles = append(listFiles, cred.Label)
 			}
