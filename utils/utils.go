@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -17,6 +18,10 @@ func Exists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func IsWindows() bool{
+	return runtime.GOOS == "windows"
 }
 
 func StringPrompt(label string) string {
