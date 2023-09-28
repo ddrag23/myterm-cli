@@ -3,11 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strconv"
 	"termius-cli/entity"
+	"termius-cli/utils"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
@@ -15,10 +16,13 @@ import (
 )
 
 func runAndConnectSsh(file string) {
-	jsonFile, _ := os.Open(file)
+	jsonFile, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer jsonFile.Close()
 	var cred entity.SSHCredentials
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &cred)
 	port := strconv.Itoa(cred.Port)
 
@@ -30,6 +34,8 @@ func runAndConnectSsh(file string) {
 		},
 	}
 	client, err := ssh.Dial("tcp", cred.Address+":"+port, sshConfig)
+	
+	
 	if client != nil {
 		defer client.Close()
 	}
@@ -59,22 +65,23 @@ func runAndConnectSsh(file string) {
 			log.Fatal(err)
 		}
 		defer terminal.Restore(fileDescriptor, originalState)
-
-		termWidth, termHeight, err := terminal.GetSize(fileDescriptor)
-		if err != nil {
-			log.Fatal(err)
-
+		var termHeight,termWidth int
+		if utils.IsWindows() {
+			termHeight = 100
+			termWidth = 100
+		}else{
+			termWidth, termHeight, err = terminal.GetSize(fileDescriptor)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 
 		err = session.RequestPty("xterm-256color", termHeight, termWidth, modes)
 		if err != nil {
+
 			log.Fatal(err)
 
 		}
-	}
-	// err = session.RequestPty("xterm-256color", 80, 100, modes)
-	if err != nil {
-		fmt.Println(err.Error())
 	}
 	err = session.Shell()
 	if err != nil {
