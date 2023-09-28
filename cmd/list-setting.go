@@ -23,28 +23,33 @@ func checkboxes(label string, opts []string) string {
 	return res
 }
 
+func getAllCredentials() string {
+	files, err := os.ReadDir("./credentials")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var listFiles []string
+	for _, file := range files {
+		jsonFile, err := os.Open("./credentials/" + file.Name())
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		defer jsonFile.Close()
+		var cred entity.SSHCredentials
+		byteValue, _ := io.ReadAll(jsonFile)
+		json.Unmarshal(byteValue, &cred)
+		listFiles = append(listFiles, cred.Label)
+	}
+	answer := checkboxes("Pilih salah satu credential", listFiles)
+	return answer
+}
+
 func ListSetting() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List all your credential ssh",
 		Run: func(cmd *cobra.Command, args []string) {
-			files, err := os.ReadDir("./credentials")
-			if err != nil {
-				log.Fatal(err)
-			}
-			var listFiles []string
-			for _, file := range files {
-				jsonFile, err := os.Open("./credentials/" + file.Name())
-				if err != nil {
-					fmt.Println(err.Error())
-				}
-				defer jsonFile.Close()
-				var cred entity.SSHCredentials
-				byteValue, _ := io.ReadAll(jsonFile)
-				json.Unmarshal(byteValue, &cred)
-				listFiles = append(listFiles, cred.Label)
-			}
-			answer := checkboxes("Pilih salah satu credential", listFiles)
+			answer := getAllCredentials()
 			runAndConnectSsh("./credentials/" + answer + ".json")
 		},
 	}
